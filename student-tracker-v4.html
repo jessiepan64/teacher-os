@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher OS — 學生追蹤系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f5f2;--sf:#fff;--s2:#f2f0ec;--s3:#eae7e2;
+  --bd:#dedad4;--bd2:#ccc8c2;
+  --tx:#1c1a17;--mu:#88807a;--di:#524e48;
+  --c33:#1e6040;--c26:#163368;--c17:#7a3e00;--c111:#62285a;
+  --ac:#c85008;--gd:#1e6040;--wn:#be7a10;--dg:#b02828;
+  --sh:0 1px 6px rgba(0,0,0,.06);--shm:0 4px 16px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans TC',sans-serif;font-size:14px;min-height:100vh;}
+.hdr{background:var(--tx);color:var(--bg);height:50px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;}
+.logo{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--ac);}
+.hc{font-size:14px;font-weight:700;}
+.hdw{font-family:'DM Mono',monospace;font-size:11px;color:#999;}
+.top-tabs{background:var(--sf);border-bottom:2px solid var(--bd);display:flex;overflow-x:auto;position:sticky;top:50px;z-index:200;}
+.tt{padding:0 20px;height:46px;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.4px;cursor:pointer;color:var(--mu);border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;user-select:none;flex-shrink:0;}
+.tt:hover{color:var(--di);}
+.tt.active{color:var(--tx);border-bottom-color:var(--ac);}
+.tt-dot{width:8px;height:8px;border-radius:50%;}
+.main{padding:18px 18px 80px;max-width:1440px;margin:0 auto;}
+.pg{display:none;}
+.pg.active{display:block;}
+.cbar{display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;margin-bottom:16px;border-left:5px solid;}
+.cbar.c33{background:#eaf3ee;border-color:var(--c33);color:var(--c33);}
+.cbar.c26{background:#eaeff8;border-color:var(--c26);color:var(--c26);}
+.cbar.c17{background:#fdf2ea;border-color:var(--c17);color:var(--c17);}
+.cbar.c111{background:#f7ecf5;border-color:var(--c111);color:var(--c111);}
+.cbar-name{font-size:19px;font-weight:900;}
+.cbar-sched{font-size:11px;font-family:'DM Mono',monospace;opacity:.7;margin-top:1px;}
+.cbar-stats{margin-left:auto;display:flex;gap:18px;}
+.cs{text-align:center;}
+.cs-v{font-size:19px;font-weight:900;font-family:'DM Mono',monospace;}
+.cs-l{font-size:10px;opacity:.65;margin-top:1px;}
+.dnav{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:16px;box-shadow:var(--sh);}
+.drow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.drow:last-child{margin-bottom:0;}
+.dl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu);}
+.dinput{background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-size:12px;padding:6px 10px;border-radius:8px;font-family:'DM Mono',monospace;}
+.dinput:focus{outline:none;border-color:var(--ac);}
+.nb{background:var(--s2);border:1px solid var(--bd);color:var(--di);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.nb:hover{border-color:var(--bd2);color:var(--tx);}
+.dp-wrap{display:flex;gap:5px;flex-wrap:wrap;}
+.dp{padding:5px 8px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;background:var(--sf);border:1px solid var(--bd);color:var(--mu);font-family:'DM Mono',monospace;text-align:center;line-height:1.4;}
+.dp:hover{border-color:var(--bd2);color:var(--di);}
+.dp.cd{border-color:var(--ac);color:var(--ac);}
+.dp.on{background:var(--tx);color:var(--bg);border-color:var(--tx);}
+.dp.on.cd{background:var(--ac);border-color:var(--ac);}
+.mpill{padding:4px 11px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;background:var(--s2);border:1px solid var(--bd);color:var(--mu);font-family:'DM Mono',monospace;}
+.mpill:hover{border-color:var(--bd2);color:var(--di);}
+.mpill.on{background:var(--tx);color:var(--bg);border-color:var(--tx);}
+.cdtoggle{padding:4px 11px;border-radius:16px;font-size:11px;font-weight:700;cursor:pointer;background:var(--ac);color:#fff;border:1px solid var(--ac);}
+.cls-search{display:flex;align-items:center;gap:8px;margin-bottom:12px;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;box-shadow:var(--sh);}
+.cls-search-icon{font-size:14px;color:var(--mu);flex-shrink:0;}
+.cls-search-input{flex:1;border:none;background:transparent;font-size:13px;color:var(--tx);font-family:'Noto Sans TC',sans-serif;outline:none;}
+.cls-search-input::placeholder{color:var(--mu);}
+.cls-search-count{font-size:11px;color:var(--mu);font-family:'DM Mono',monospace;white-space:nowrap;}
+.score-quick{display:flex;align-items:center;gap:3px;flex-shrink:0;onclick-stop:true;}
+.sq-input{width:38px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:var(--tx);text-align:center;padding:2px 4px;outline:none;}
+.sq-input:focus{border-color:var(--ac);}
+.sq-input.sh2{background:#d8f3e8;border-color:#6abf8a;color:#1a5c3a;}
+.sq-input.sm2{background:#fef3d6;border-color:#e0b96a;color:#7a4a00;}
+.sq-input.sl3{background:#fde8e8;border-color:#e0a0a0;color:#a02020;}
+.attn{background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:12px 14px;margin-bottom:16px;box-shadow:var(--sh);}
+.attn-t{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);margin-bottom:8px;}
+.attn-c{display:flex;flex-wrap:wrap;gap:6px;}
+.ac-r{padding:4px 10px;border-radius:7px;font-size:12px;font-weight:700;border-left:3px solid var(--dg);background:#fde8e8;color:#7a1818;}
+.ac-o{padding:4px 10px;border-radius:7px;font-size:12px;font-weight:700;border-left:3px solid var(--wn);background:#fef3d6;color:#7a4a00;}
+.tb{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);}
+.slist{background:var(--sf);border:1px solid var(--bd);border-radius:13px;overflow:hidden;box-shadow:var(--sh);margin-bottom:20px;}
+.swrap{border-bottom:1px solid var(--bd);}
+.swrap:last-child{border-bottom:none;}
+.srow{display:flex;align-items:center;gap:10px;padding:11px 15px;cursor:pointer;user-select:none;}
+.srow:hover{background:var(--s2);}
+.srow.alert{background:#fff8f6;}
+.srow.alert:hover{background:#fde8e8;}
+.srow-l{display:flex;align-items:center;gap:8px;min-width:140px;}
+.srow-n{width:22px;height:22px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--mu);flex-shrink:0;}
+.srow-name{font-size:13px;font-weight:700;}
+.srow-chips{display:flex;gap:4px;flex-wrap:wrap;flex:1;}
+.srow-arr{font-size:10px;color:var(--mu);flex-shrink:0;transition:transform .2s,color .2s;margin-left:4px;}
+.att-inline{display:flex;gap:3px;align-items:center;flex-shrink:0;}
+.ail{padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--bd);color:var(--mu);background:var(--sf);user-select:none;transition:all .12s;}
+.ail:hover{border-color:var(--bd2);}
+.ail.a-out{background:#d8f3e8;border-color:#6abf8a;color:#1a5c3a;}
+.ail.a-late{background:#fef3d6;border-color:#e0b96a;color:#7a4a00;}
+.ail.a-abs{background:#fde8e8;border-color:#e0a0a0;color:#a02020;}
+.ail.a-leave{background:#e8f0fe;border-color:#6a90bf;color:#1a3a7a;}
+.sdetail{border-top:1px solid var(--bd);}
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;color:#fff;}
+.chip{font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px;white-space:nowrap;display:inline-block;}
+.sch{font-size:10px;font-weight:700;padding:2px 7px;border-radius:7px;font-family:'DM Mono',monospace;display:inline-block;}
+.bg{background:#d8f3e8;color:#1a5c3a;}
+.bw{background:#fef3d6;color:#7a4a00;}
+.bb{background:#fde8e8;color:#a02020;}
+.bn{background:var(--s3);color:var(--mu);}
+.sh2{background:#d8f3e8;color:#1a5c3a;}
+.sm2{background:#fef3d6;color:#7a4a00;}
+.sl3{background:#fde8e8;color:#a02020;}
+.sn2{background:var(--s3);color:var(--mu);}
+.slv{font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px;display:inline-block;}
+.lh{background:#d8f3e8;color:#1a5c3a;}
+.lm{background:#fef3d6;color:#7a4a00;}
+.ll{background:#fde8e8;color:#a02020;}
+.sc-td{padding:10px 14px;border-bottom:1px solid var(--bd);background:var(--s2);}
+.st{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.st::after{content:'';flex:1;height:1px;background:var(--bd);}
+.tg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px;}
+.ti{background:var(--sf);border-radius:7px;padding:7px 9px;border:1px solid var(--bd);}
+.til{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mu);margin-bottom:4px;}
+.tis{width:100%;background:transparent;border:none;font-size:12px;font-weight:700;color:var(--tx);font-family:'Noto Sans TC',sans-serif;cursor:pointer;}
+.tis:focus{outline:none;}
+.sin{width:100%;background:transparent;border:none;font-size:14px;font-weight:900;font-family:'DM Mono',monospace;color:var(--tx);text-align:center;}
+.sin:focus{outline:none;}
+.att-row{display:flex;gap:4px;flex-wrap:wrap;}
+.ao{display:flex;align-items:center;gap:3px;cursor:pointer;padding:3px 7px;border-radius:7px;border:1px solid var(--bd);font-size:11px;font-weight:700;user-select:none;}
+.ao.sg{background:#d8f3e8;border-color:#6abf8a;color:#1a5c3a;}
+.ao.sw{background:#fef3d6;border-color:#e0b96a;color:#7a4a00;}
+.ao.sb2{background:#fde8e8;border-color:#e0a0a0;color:#a02020;}
+.ao.sp{background:#e8f0fe;border-color:#6a90bf;color:#1a3a7a;}
+.ftog{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;border:1px solid var(--bd);font-size:11px;font-weight:700;cursor:pointer;background:var(--sf);color:var(--mu);user-select:none;}
+.ftog:hover{border-color:var(--bd2);color:var(--di);}
+.ftog.on{background:#fef3d6;border-color:#e0b96a;color:#7a4a00;}
+.sc-wk{padding:10px 14px;}
+.pr-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.pr-lbl{font-size:11px;color:var(--mu);white-space:nowrap;}
+.pb-wrap{flex:1;height:5px;background:var(--s3);border-radius:3px;overflow:hidden;}
+.pb-fill{height:100%;border-radius:3px;background:var(--ac);}
+.pp{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--mu);min-width:30px;text-align:right;}
+.psl{width:100%;accent-color:var(--ac);cursor:pointer;}
+.wni{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:6px 9px;font-size:12px;font-family:'Noto Sans TC',sans-serif;color:var(--tx);resize:none;line-height:1.5;}
+.wni:focus{outline:none;border-color:var(--ac);}
+.sc-hist{padding:8px 14px 10px;border-top:1px solid var(--bd);}
+.ht{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu);margin-bottom:6px;}
+.hr-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bd);}
+.hr-row:last-child{border-bottom:none;}
+.hd{font-family:'DM Mono',monospace;font-size:10px;color:var(--mu);min-width:36px;}
+.hchips{display:flex;gap:3px;flex-wrap:wrap;flex:1;}
+.sc-ft{padding:8px 14px;background:var(--s2);border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.saved{font-size:11px;color:var(--gd);font-weight:700;opacity:0;transition:opacity .3s;}
+.saved.show{opacity:1;}
+.ms-card{background:var(--s2);border-radius:9px;padding:12px 14px;text-align:center;}
+.ms-val{font-size:22px;font-weight:900;font-family:'DM Mono',monospace;}
+.ms-lbl{font-size:10px;color:var(--mu);margin-top:2px;}
+.sum-card{background:var(--sf);border:1px solid var(--bd);border-radius:11px;overflow:hidden;box-shadow:var(--sh);}
+.sum-card-hd{padding:12px 16px;border-bottom:1px solid var(--bd);font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:space-between;}
+.sum-table{width:100%;border-collapse:collapse;font-size:13px;}
+.sum-table th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu);background:var(--s2);}
+.sum-table td{padding:9px 14px;border-top:1px solid var(--bd);vertical-align:middle;}
+.sum-table tbody tr:hover td{background:var(--s2);}
+.prof-card{background:var(--sf);border:1px solid var(--bd);border-radius:13px;box-shadow:var(--shm);overflow:hidden;margin-bottom:16px;}
+.prof-top{padding:16px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.prof-name{font-size:19px;font-weight:900;}
+.prof-meta{font-size:12px;color:var(--mu);margin-top:3px;}
+.prof-stats{margin-left:auto;display:flex;gap:14px;}
+.pst{text-align:center;}
+.pst-v{font-size:20px;font-weight:900;font-family:'DM Mono',monospace;}
+.pst-l{font-size:10px;color:var(--mu);margin-top:1px;}
+.ptabs{display:flex;gap:6px;padding:12px 18px;border-bottom:1px solid var(--bd);background:var(--s2);}
+.ptab{padding:5px 14px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;background:var(--sf);border:1px solid var(--bd);color:var(--mu);}
+.ptab.on{background:var(--tx);color:var(--bg);border-color:var(--tx);}
+.prof-body{padding:16px 18px;}
+.wb-title{font-size:12px;font-weight:700;color:var(--mu);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.wb-title::after{content:'';flex:1;height:1px;background:var(--bd);}
+.wb-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--s2);border-radius:8px;margin-bottom:4px;}
+.wb-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--mu);min-width:56px;}
+.wb-chips{display:flex;gap:4px;flex-wrap:wrap;flex:1;}
+.sc-chart{display:flex;align-items:flex-end;gap:5px;height:72px;margin-bottom:10px;}
+.comm-log{border:1px solid var(--bd);border-radius:9px;overflow:hidden;margin-bottom:10px;}
+.comm-row{display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid var(--bd);font-size:12px;align-items:flex-start;}
+.comm-row:last-child{border-bottom:none;}
+.comm-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--mu);min-width:44px;margin-top:2px;flex-shrink:0;}
+.comm-content{flex:1;color:var(--tx);line-height:1.55;}
+.comm-del{font-size:10px;color:var(--mu);cursor:pointer;padding:2px 5px;border-radius:4px;flex-shrink:0;margin-top:1px;}
+.comm-del:hover{background:#fde8e8;color:var(--dg);}
+.comm-form{display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--s2);border-radius:9px;margin-top:10px;}
+.comm-form-row{display:flex;gap:8px;align-items:center;}
+.comm-date-in{background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-size:12px;padding:6px 10px;border-radius:7px;font-family:'DM Mono',monospace;}
+.comm-date-in:focus{outline:none;border-color:var(--ac);}
+.comm-text-in{flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Noto Sans TC',sans-serif;color:var(--tx);resize:none;line-height:1.5;}
+.comm-text-in:focus{outline:none;border-color:var(--ac);}
+.comm-add-btn{background:var(--ac);color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;flex-shrink:0;}
+.comm-add-btn:hover{opacity:.88;}
+.sc-bw{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.sc-bar{width:100%;border-radius:4px 4px 0 0;min-height:3px;}
+.ov{position:fixed;inset:0;background:rgba(28,26,23,.5);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px);}
+.ov.open{opacity:1;pointer-events:all;}
+.modal{background:var(--sf);border-radius:15px;padding:26px;width:460px;max-width:96vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.12);transform:translateY(16px);transition:transform .2s;}
+.ov.open .modal{transform:translateY(0);}
+.mtitle{font-size:14px;font-weight:900;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.mclose{background:none;border:none;font-size:18px;cursor:pointer;color:var(--mu);}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fg{margin-bottom:11px;}
+.fl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:4px;}
+.fc{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);font-size:13px;padding:8px 11px;border-radius:8px;font-family:'Noto Sans TC',sans-serif;}
+.fc:focus{outline:none;border-color:var(--ac);}
+.mfoot{display:flex;gap:9px;justify-content:flex-end;margin-top:14px;padding-top:13px;border-top:1px solid var(--bd);}
+.btn{font-family:'Noto Sans TC',sans-serif;font-size:12px;font-weight:700;padding:7px 15px;border-radius:8px;border:none;cursor:pointer;}
+.bp{background:var(--tx);color:var(--bg);}
+.bp:hover{background:#333;}
+.bg2{background:transparent;color:var(--di);border:1px solid var(--bd2);}
+.bg2:hover{border-color:var(--mu);color:var(--tx);}
+.bd2{background:transparent;color:var(--dg);border:1px solid #f0c0c0;font-size:11px;padding:4px 9px;}
+.bd2:hover{background:#fde8e8;}
+.bsm{padding:4px 10px;font-size:11px;}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--tx);color:var(--bg);font-size:13px;font-weight:700;padding:11px 18px;border-radius:9px;z-index:999;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.empty{text-align:center;padding:40px 16px;color:var(--mu);}
+.empty-i{font-size:36px;margin-bottom:10px;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--s2);}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px;}
+@media(max-width:600px){.main{padding:10px 10px 60px;}.tg{grid-template-columns:1fr 1fr;}.cbar-stats{display:none;}.fr{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="logo">TEACHER OS</div>
+  <div class="hc">學生學習追蹤系統</div>
+  <div class="hdw" id="dateDisp">—</div>
+  <div style="display:flex;gap:8px;margin-left:16px">
+    <button onclick="exportData()" style="background:transparent;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.85);font-size:11px;font-weight:700;padding:5px 12px;border-radius:7px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" title="匯出資料備份">⬇ 匯出</button>
+    <label style="background:transparent;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.85);font-size:11px;font-weight:700;padding:5px 12px;border-radius:7px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" title="匯入備份資料">⬆ 匯入<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+  </div>
+</div>
+<div class="top-tabs">
+  <div class="tt active" onclick="showTop('sc33')"><div class="tt-dot" style="background:var(--c33)"></div>SC33</div>
+  <div class="tt" onclick="showTop('sc26')"><div class="tt-dot" style="background:var(--c26)"></div>SC26</div>
+  <div class="tt" onclick="showTop('sc17')"><div class="tt-dot" style="background:var(--c17)"></div>SC17</div>
+  <div class="tt" onclick="showTop('sc111')"><div class="tt-dot" style="background:var(--c111)"></div>SC111</div>
+  <div class="tt" onclick="showTop('summary')">📊 班級統整</div>
+  <div class="tt" onclick="showTop('profile')">👤 個人統整</div>
+</div>
+<div class="main">
+  <div class="pg active" id="pg-sc33"></div>
+  <div class="pg" id="pg-sc26"></div>
+  <div class="pg" id="pg-sc17"></div>
+  <div class="pg" id="pg-sc111"></div>
+  <div class="pg" id="pg-summary">
+    <div style="font-size:20px;font-weight:900;margin-bottom:6px">班級統整報告</div>
+    <div style="font-size:13px;color:var(--mu);margin-bottom:14px">各班功課繳交＋考試分數一覽</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div id="sumTabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <input type="date" class="dinput" id="sumDate" onchange="renderSummary()">
+    </div>
+    <div id="sumContent"></div>
+  </div>
+  <div class="pg" id="pg-profile">
+    <div style="font-size:20px;font-weight:900;margin-bottom:6px">學生個人統整</div>
+    <div style="font-size:13px;color:var(--mu);margin-bottom:14px">當週＋當月完整學習狀況</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <input style="flex:1;min-width:180px;background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-size:13px;padding:8px 12px;border-radius:9px;font-family:'Noto Sans TC',sans-serif;" placeholder="搜尋學生姓名..." id="profSearch" oninput="filterProfile()">
+      <div id="profClsTabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div id="profContent"></div>
+  </div>
+</div>
+<div class="ov" id="ov" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mtitle"><span id="mTitle">新增學生</span><button class="mclose" onclick="closeModal()">✕</button></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">姓名 *</label><input class="fc" id="f-name" placeholder="學生姓名"></div>
+      <div class="fg"><label class="fl">程度</label><select class="fc" id="f-level"><option>高</option><option selected>中</option><option>低</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">備註</label><input class="fc" id="f-note" placeholder="例：個性活潑、需要關注..."></div>
+    <div class="mfoot">
+      <button class="btn bg2" onclick="closeModal()">取消</button>
+      <button class="btn bp" onclick="saveStudent()">儲存</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast">✓</div>
+
+<script>
+var CLS = {
+  sc33:  {name:'SC33', color:'var(--c33)', css:'c33', sched:'週一 16:00–18:00 ／ 週三 14:00–16:00', dowIdx:[1,3]},
+  sc26:  {name:'SC26', color:'var(--c26)', css:'c26', sched:'週三 16:00–18:00 ／ 週五 16:00–18:00', dowIdx:[3,5]},
+  sc17:  {name:'SC17', color:'var(--c17)', css:'c17', sched:'週二 14:00–16:00 ／ 週五 14:00–16:00', dowIdx:[2,5]},
+  sc111: {name:'SC111',color:'var(--c111)',css:'c111',sched:'週二 16:00–18:00 ／ 週四 16:00–18:00', dowIdx:[2,4]}
+};
+var CLSKEYS = ['sc33','sc26','sc17','sc111'];
+var AVC = ['#1e6040','#163368','#7a3e00','#62285a','#1a6068','#5a3a00','#3a1a68'];
+var DOWZH = ['日','一','二','三','四','五','六'];
+var START = '2026-04-01', ENDDATE = '2026-12-31';
+
+var db = {sc33:[],sc26:[],sc17:[],sc111:[]};
+var curCls='sc33', curDate=toYMD(new Date()), editId=null, sumCls='sc33', profClsF='all';
+
+function loadDB(){ try{ var s=localStorage.getItem('tOS_v5'); if(s) db=JSON.parse(s); }catch(e){} }
+function saveDB(){ try{ localStorage.setItem('tOS_v5',JSON.stringify(db)); }catch(e){} }
+loadDB();
+
+// ─ DATE UTILS ─
+function pad(n){ return String(n).padStart(2,'0'); }
+function toYMD(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function dispDate(s){ var d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate(); }
+function getDOW(s){ return new Date(s+'T00:00:00').getDay(); }
+function getDOWzh(s){ return '週'+DOWZH[getDOW(s)]; }
+function getWK(s){
+  var d=new Date(s+'T00:00:00'), j=new Date(d.getFullYear(),0,1);
+  return d.getFullYear()+'-W'+pad(Math.ceil(((d-j)/86400000+j.getDay()+1)/7));
+}
+function getWeekDays(s){
+  var d=new Date(s+'T00:00:00'), dw=d.getDay()||7, m=new Date(d);
+  m.setDate(d.getDate()-dw+1);
+  return Array.from({length:7},function(_,i){ var x=new Date(m); x.setDate(m.getDate()+i); return toYMD(x); });
+}
+function getMonthDays(s){
+  var p=s.split('-'), y=parseInt(p[0]), mo=parseInt(p[1]), days=[], d=new Date(y,mo-1,1);
+  while(d.getMonth()===mo-1){ days.push(toYMD(d)); d.setDate(d.getDate()+1); }
+  return days;
+}
+function isClassDay(cls,s){ return CLS[cls].dowIdx.indexOf(getDOW(s))>=0; }
+function getAllClassDays(cls){
+  var r=[], s=new Date(START+'T00:00:00'), e=new Date(ENDDATE+'T00:00:00'), c=new Date(s);
+  while(c<=e){ if(CLS[cls].dowIdx.indexOf(c.getDay())>=0) r.push(toYMD(c)); c.setDate(c.getDate()+1); }
+  return r;
+}
+function mkId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function getAVC(name){ return AVC[(name.charCodeAt(0)||0)%AVC.length]; }
+function getInit(name){ return name.charAt(0)||'?'; }
+
+// ─ DATA HELPERS ─
+function getD(s, date){
+  if(!s.daily) s.daily={};
+  if(!s.daily[date]) s.daily[date]={hw:'—',hwScope:'',score:'',examScope:'',attend:'出席',absType:'',status:'正常',noBook:false,noContact:false};
+  var d=s.daily[date];
+  if(d.hwScope===undefined) d.hwScope='';
+  if(d.absType===undefined) d.absType='';
+  if(d.noBook===undefined) d.noBook=false;
+  if(d.noContact===undefined) d.noContact=false;
+  if(d.examScope===undefined) d.examScope='';
+  return d;
+}
+function getW(s, wk){
+  if(!s.weekly) s.weekly={};
+  if(!s.weekly[wk]) s.weekly[wk]={progress:0,note:''};
+  return s.weekly[wk];
+}
+
+// ─ BADGE HELPERS ─
+function scClass(v){ var n=parseInt(v); if(isNaN(n)||!v) return 'sn2'; return n>=80?'sh2':n>=60?'sm2':'sl3'; }
+function hwClass(v){ return v==='準時'?'bg':v==='未交'?'bb':v==='遲交'?'bw':'bn'; }
+function stClass(v){ return v==='積極'?'bg':v==='需關注'?'bb':v==='被動'?'bw':'bn'; }
+function attDisp(d){
+  if(d.attend==='出席') return '出席';
+  if(d.attend==='遲到') return '遲到';
+  if(d.attend==='請假') return d.absType?'請假('+d.absType+')':'請假';
+  if(d.attend==='缺席') return d.absType?'缺席('+d.absType+')':'缺席';
+  return d.attend||'出席';
+}
+function attClass(d){ return d.attend==='出席'?'bg':d.attend==='缺席'?'bb':d.attend==='請假'?'bn':'bw'; }
+function mkChip(t,c){ return '<span class="chip '+c+'">'+t+'</span>'; }
+function mkSChip(t,c){ return '<span class="sch '+c+'">'+t+'</span>'; }
+function buildChips(d, w){
+  var c='';
+  if(d.hw!=='—'){
+    var hwsl=d.hwScope?' '+d.hwScope:'';
+    c+=mkChip(d.hw+hwsl, hwClass(d.hw));
+  }
+  if(d.score){
+    var sl=d.examScope?' '+d.examScope:'';
+    c+=mkSChip(d.score+'分'+sl, scClass(d.score));
+  }
+  if(d.attend!=='出席') c+=mkChip(attDisp(d), attClass(d));
+  if(d.status!=='正常') c+=mkChip(d.status, stClass(d.status));
+  if(d.noBook) c+=mkChip('未帶課本','bw');
+  if(d.noContact) c+=mkChip('未帶聯絡簿','bw');
+  if(w && w.progress>0) c+='<span style="font-size:10px;color:var(--mu);font-family:\'DM Mono\',monospace">'+w.progress+'%</span>';
+  return c;
+}
+
+// ─ TOP NAV ─
+function showTop(id){
+  document.querySelectorAll('.pg').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tt').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('pg-'+id).classList.add('active');
+  var map={sc33:0,sc26:1,sc17:2,sc111:3,summary:4,profile:5};
+  if(map[id]!==undefined) document.querySelectorAll('.tt')[map[id]].classList.add('active');
+  if(CLSKEYS.indexOf(id)>=0){ curCls=id; renderPage(id); }
+  if(id==='summary') renderSummary();
+  if(id==='profile') renderProfile();
+}
+
+// ─ CLASS PAGE ─
+function renderPage(cls){
+  var info=CLS[cls], students=db[cls], wk=getWK(curDate), wd=getWeekDays(curDate);
+  var noHw=0, scores=[], attn=[];
+  students.forEach(function(s){
+    var d=getD(s,curDate);
+    if(d.hw==='未交') noHw++;
+    var sc=parseInt(d.score); if(!isNaN(sc)&&sc>0) scores.push(sc);
+    var iss=[];
+    if(d.hw==='未交') iss.push('功課未交');
+    if(d.attend==='缺席') iss.push(d.absType?'缺席('+d.absType+')':'缺席');
+    if(d.attend==='請假') iss.push(d.absType?'請假('+d.absType+')':'請假');
+    if(!isNaN(parseInt(d.score))&&parseInt(d.score)<60&&parseInt(d.score)>0) iss.push(d.score+'分');
+    if(d.noBook) iss.push('未帶課本');
+    if(d.noContact) iss.push('未帶聯絡簿');
+    if(iss.length) attn.push({name:s.name, iss:iss, bad:iss.join(',').indexOf('缺席')>=0});
+  });
+  var avg=scores.length?Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length):null;
+  var isCDay=isClassDay(cls,curDate);
+  var h='';
+
+  h+='<div class="cbar '+info.css+'" style="border-left-color:'+info.color+'">';
+  h+='<div><div class="cbar-name">'+info.name+'</div><div class="cbar-sched">'+info.sched+'</div></div>';
+  h+='<div class="cbar-stats">';
+  h+='<div class="cs"><div class="cs-v">'+students.length+'</div><div class="cs-l">學生</div></div>';
+  h+='<div class="cs"><div class="cs-v" style="color:'+info.color+'">'+(avg!==null?avg:'—')+'</div><div class="cs-l">今日均分</div></div>';
+  h+='<div class="cs"><div class="cs-v" style="color:var(--dg)">'+noHw+'</div><div class="cs-l">未交功課</div></div>';
+  h+='</div></div>';
+
+  // Date nav
+  h+='<div class="dnav">';
+  h+='<div class="drow">';
+  h+='<span class="dl">日期</span>';
+  h+='<input type="date" class="dinput" id="dp-'+cls+'" value="'+curDate+'" min="'+START+'" max="'+ENDDATE+'" onchange="changeDate(this.value)">';
+  h+='<button class="nb" onclick="changeDate(toYMD(new Date()))">今天</button>';
+  h+='<button class="nb" onclick="shiftWeek(-1)">← 上週</button>';
+  h+='<button class="nb" onclick="shiftWeek(1)">下週 →</button>';
+  if(isCDay) h+='<span style="background:'+info.color+'18;color:'+info.color+';font-size:11px;font-weight:700;padding:4px 10px;border-radius:16px;border:1px solid '+info.color+'40">📚 上課日 '+getDOWzh(curDate)+'</span>';
+  h+='<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--mu);margin-left:auto">'+getWK(curDate)+'</span>';
+  h+='</div>';
+
+  h+='<div class="dp-wrap" style="margin-bottom:10px">';
+  wd.forEach(function(d){
+    var cd=isClassDay(cls,d);
+    var cls2='dp'+(d===curDate?' on':'')+(cd?' cd':'');
+    h+='<div class="'+cls2+'" onclick="changeDate(\''+d+'\')">'+dispDate(d)+'<br><span style="font-size:9px">'+getDOWzh(d)+'</span></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="drow">';
+  h+='<span class="dl">跳到</span>';
+  ['04','05','06','07','08','09','10','11','12'].forEach(function(m){
+    var on=curDate.slice(5,7)===m;
+    h+='<div class="mpill'+(on?' on':'')+'" onclick="jumpMonth(\''+cls+'\',\''+m+'\')">'+m+'月</div>';
+  });
+  h+='<span class="dl" style="margin-left:8px">本班上課日</span>';
+  h+='<div class="cdtoggle" id="cdtog-'+cls+'" onclick="toggleCDs(\''+cls+'\')">顯示 ▾</div>';
+  h+='</div>';
+
+  h+='<div id="cdlist-'+cls+'" style="display:none;margin-top:10px"><div class="dp-wrap">';
+  getAllClassDays(cls).forEach(function(d){
+    var cls2='dp cd'+(d===curDate?' on':'');
+    h+='<div class="'+cls2+'" onclick="changeDate(\''+d+'\');toggleCDs(\''+cls+'\')" style="min-width:68px;text-align:center">'+dispDate(d)+'<br><span style="font-size:9px">'+getDOWzh(d)+'</span></div>';
+  });
+  h+='</div></div></div>';
+
+  // Attention
+  h+='<div class="attn"><div class="attn-t">⚠️ 今日需關注（'+dispDate(curDate)+' '+getDOWzh(curDate)+'）</div>';
+  h+='<div class="attn-c" id="attn-'+cls+'">';
+  if(attn.length){
+    attn.forEach(function(a){ h+='<div class="'+(a.bad?'ac-r':'ac-o')+'">'+a.name+' — '+a.iss.join('、')+'</div>'; });
+  } else { h+='<span style="color:var(--mu);font-size:13px">✅ 今日無需特別關注的學生</span>'; }
+  h+='</div></div>';
+
+  h+='<div class="tb"><div class="sl">學生名單 · '+dispDate(curDate)+' '+getDOWzh(curDate)+'</div>';
+  h+='<button class="btn bp" onclick="openAdd(\''+cls+'\')">＋ 新增學生</button></div>';
+
+  h+='<div class="cls-search">';
+  h+='<span class="cls-search-icon">🔍</span>';
+  h+='<input class="cls-search-input" id="clsq-'+cls+'" placeholder="搜尋學生姓名..." oninput="filterCls(this)">';
+  h+='<span class="cls-search-count" id="clsc-'+cls+'">'+students.length+' 位</span>';
+  h+='</div>';
+
+  h+='<div class="slist" id="grid-'+cls+'">';
+  if(students.length){
+    students.forEach(function(s,i){ h+=makeRow(cls,s,curDate,wk,i); });
+  } else {
+    h+='<div class="empty"><div class="empty-i">📚</div>點擊「新增學生」建立名單</div>';
+  }
+  h+='</div>';
+
+  document.getElementById('pg-'+cls).innerHTML=h;
+}
+
+// ─ STUDENT ROW ─
+function makeRow(cls, s, date, wk, idx){
+  var d=getD(s,date), w=getW(s,wk);
+  var hasAlert=(d.hw==='未交'||d.attend==='缺席'||(parseInt(d.score)<60&&parseInt(d.score)>0)||d.noBook||d.noContact);
+
+  var histDays=Object.keys(s.daily||{}).filter(function(k){
+    var x=s.daily[k]; return x&&(x.score||x.hw!=='—'||x.attend!=='出席'||x.status!=='正常'||x.noBook||x.noContact);
+  }).sort().reverse().slice(0,3);
+
+  var h='';
+  h+='<div class="swrap" id="card-'+s.id+'">';
+
+  // Collapsed row
+  h+='<div class="srow'+(hasAlert?' alert':'')+'" onclick="toggleRow(\''+s.id+'\')">';
+  h+='<div class="srow-l">';
+  h+='<div class="srow-n">'+(idx+1)+'</div>';
+  h+='<div class="av" style="background:'+getAVC(s.name)+';width:30px;height:30px;font-size:12px">'+getInit(s.name)+'</div>';
+  h+='<div><div class="srow-name">'+s.name+(hasAlert?'<span style="color:var(--dg);font-size:11px;margin-left:4px">⚠</span>':'')+'</div>';
+  h+='<span class="slv '+(s.level==='高'?'lh':s.level==='低'?'ll':'lm')+'" style="font-size:9px">'+s.level+'</span></div>';
+  h+='</div>';
+  h+='<div class="srow-chips">'+buildChips(d,w)+'</div>';
+  // Inline attendance buttons
+  h+='<div class="att-inline" onclick="event.stopPropagation()">';
+  var attOpts=[['出','出席','a-out'],['遲','遲到','a-late'],['假','請假','a-leave'],['缺','缺席','a-abs']];
+  attOpts.forEach(function(opt){
+    var isOn=(opt[1]==='請假'?(d.attend==='請假'):(d.attend===opt[1]));
+    var aicls='ail'+(isOn?' '+opt[2]:'');
+    h+='<div class="'+aicls+'" data-cls="'+cls+'" data-id="'+s.id+'" data-date="'+date+'" data-val="'+opt[1]+'" onclick="inlineAtt(this.dataset.cls,this.dataset.id,this.dataset.date,this.dataset.val,this)">'+opt[0]+'</div>';
+  });
+  h+='</div>';
+  h+='<div class="score-quick" onclick="event.stopPropagation()">';
+  h+='<input class="sq-input '+scClass(d.score)+'" id="sq-'+s.id+'" placeholder="分" value="'+d.score+'" maxlength="3" ';
+  h+='onclick="event.stopPropagation()" ';
+  h+='onchange="saveD(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'score\',this.value);upSqColor(this)" ';
+  h+='oninput="upSqColor(this)">';
+  h+='</div>';
+  h+='<div class="srow-arr" id="arr-'+s.id+'">▶</div>';
+  h+='</div>';
+
+  // Detail panel
+  h+='<div class="sdetail" id="det-'+s.id+'" style="display:none">';
+  h+='<div class="sc-td" style="border-top:1px solid var(--bd)">';
+  h+='<div class="st">📅 當天 <span style="font-size:9px;color:var(--mu);font-weight:400;letter-spacing:0;text-transform:none">'+dispDate(date)+' '+getDOWzh(date)+'</span></div>';
+  h+='<div class="tg">';
+
+  // HW
+  h+='<div class="ti"><div class="til">功課繳交</div>';
+  h+='<select class="tis" onchange="saveD(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'hw\',this.value)">';
+  ['準時','遲交','未交','—'].forEach(function(o){ h+='<option'+(d.hw===o?' selected':'')+'>'+o+'</option>'; });
+  h+='</select><div><span class="chip '+hwClass(d.hw)+'" id="hwb-'+s.id+'">'+d.hw+'</span></div>';
+  h+='<div style="margin-top:6px">';
+  h+='<div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mu);margin-bottom:3px">功課內容</div>';
+  h+='<input style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:4px 7px;font-size:11px;font-family:Noto Sans TC,sans-serif;color:var(--tx);" ';
+  h+='placeholder="例：Unit 3 P.45" value="'+d.hwScope+'" ';
+  h+='id="hwscope-'+s.id+'" ';
+  h+='onchange="saveD(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'hwScope\',this.value)">';
+  h+='</div></div>';
+
+  // Score
+  h+='<div class="ti"><div class="til">考試分數</div>';
+  h+='<input class="sin" placeholder="—" value="'+d.score+'" maxlength="3" ';
+  h+='onchange="saveD(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'score\',this.value)" ';
+  h+='oninput="upSc(this,\'scb-'+s.id+'\')">';
+  h+='<div><span class="sch '+scClass(d.score)+'" id="scb-'+s.id+'">'+(d.score||'—')+'</span></div>';
+  h+='<div style="margin-top:6px">';
+  h+='<div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mu);margin-bottom:3px">考試範圍</div>';
+  h+='<input style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:4px 7px;font-size:11px;font-family:Noto Sans TC,sans-serif;color:var(--tx);" ';
+  h+='placeholder="例：Unit 3 Vocab" value="'+d.examScope+'" ';
+  h+='id="scope-'+s.id+'" ';
+  h+='onchange="saveD(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'examScope\',this.value)">';
+  h+='</div></div>';
+
+  // Status
+  h+='<div class="ti"><div class="til">上課狀況</div>';
+  h+='<select class="tis" onchange="saveD(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'status\',this.value)">';
+  ['正常','積極','被動','需關注'].forEach(function(o){ h+='<option'+(d.status===o?' selected':'')+'>'+o+'</option>'; });
+  h+='</select><div><span class="chip '+stClass(d.status)+'" id="stb-'+s.id+'">'+d.status+'</span></div></div>';
+  h+='</div>';
+
+  // Attendance
+  h+='<div style="margin-top:8px">';
+  h+='<div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mu);margin-bottom:5px">出席狀況</div>';
+  h+='<div class="att-row" id="atrow-'+s.id+'">';
+  [['出席','sg'],['遲到','sw'],['請假','sp'],['缺席','sb2']].forEach(function(pair){
+    h+='<div class="ao'+(d.attend===pair[0]?' '+pair[1]:'')+'" onclick="setAtt(\''+cls+'\',\''+s.id+'\',\''+date+'\',\''+pair[0]+'\',this)">'+pair[0]+'</div>';
+  });
+  h+='</div>';
+
+  // Absence type
+  h+='<div id="absbox-'+s.id+'" style="display:'+((d.attend==='缺席'||d.attend==='請假')?'flex':'none')+';margin-top:7px;align-items:center;gap:6px;flex-wrap:wrap">';
+  h+='<span style="font-size:10px;color:var(--mu);font-weight:700">假別：</span>';
+  ['事假','病假'].forEach(function(t){
+    h+='<div class="ao'+(d.absType===t?' sp':'')+'" onclick="setAbsType(\''+cls+'\',\''+s.id+'\',\''+date+'\',\''+t+'\',this)">'+t+'</div>';
+  });
+  h+='<div class="ao'+(d.absType===''?' sp':'')+'" onclick="setAbsType(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'\',this)">不填</div>';
+  h+='</div>';
+  h+='</div>';
+
+  // Forgotten items
+  h+='<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
+  h+='<span style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mu)">未帶</span>';
+  h+='<div class="ftog'+(d.noBook?' on':'')+'" id="nb-'+s.id+'" onclick="toggleForget(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'noBook\',this)">📚 課本'+(d.noBook?' ✓':'')+'</div>';
+  h+='<div class="ftog'+(d.noContact?' on':'')+'" id="nc-'+s.id+'" onclick="toggleForget(\''+cls+'\',\''+s.id+'\',\''+date+'\',\'noContact\',this)">📋 聯絡簿'+(d.noContact?' ✓':'')+'</div>';
+  h+='</div>';
+  h+='</div>';
+
+  // Weekly
+  h+='<div class="sc-wk">';
+  h+='<div class="st">📊 當週學習進度</div>';
+  h+='<div class="pr-row">';
+  h+='<span class="pr-lbl">進度</span>';
+  h+='<input type="range" min="0" max="100" value="'+w.progress+'" class="psl" ';
+  h+='oninput="upProg(this,\'pb-'+s.id+'\',\'pp-'+s.id+'\')" ';
+  h+='onchange="saveW(\''+cls+'\',\''+s.id+'\',\''+wk+'\',\'progress\',parseInt(this.value))">';
+  h+='<div class="pb-wrap" style="width:55px"><div class="pb-fill" id="pb-'+s.id+'" style="width:'+w.progress+'%"></div></div>';
+  h+='<span class="pp" id="pp-'+s.id+'">'+w.progress+'%</span>';
+  h+='</div>';
+  h+='<textarea class="wni" rows="2" placeholder="本週學習紀錄、需跟進事項..." ';
+  h+='onchange="saveW(\''+cls+'\',\''+s.id+'\',\''+wk+'\',\'note\',this.value)">'+w.note+'</textarea>';
+  h+='</div>';
+
+  // History
+  if(histDays.length){
+    h+='<div class="sc-hist"><div class="ht">近期紀錄</div>';
+    histDays.forEach(function(hd){
+      var hx=s.daily[hd]; if(!hx) return;
+      h+='<div class="hr-row"><span class="hd">'+dispDate(hd)+'</span><div class="hchips">';
+      if(hx.hw&&hx.hw!=='—'){
+        var hwsl2=hx.hwScope?' '+hx.hwScope:'';
+        h+=mkChip(hx.hw+hwsl2, hwClass(hx.hw));
+      }
+      if(hx.score){
+        var scopeLabel=hx.examScope?(' '+hx.examScope):'';
+        h+=mkSChip(hx.score+'分'+scopeLabel, scClass(hx.score));
+      }
+      if(hx.attend&&hx.attend!=='出席') h+=mkChip(attDisp(hx), attClass(hx));
+      if(hx.status&&hx.status!=='正常') h+=mkChip(hx.status, stClass(hx.status));
+      if(hx.noBook) h+=mkChip('未帶課本','bw');
+      if(hx.noContact) h+=mkChip('未帶聯絡簿','bw');
+      h+='</div></div>';
+    });
+    h+='</div>';
+  }
+
+  // Footer
+  h+='<div class="sc-ft">';
+  h+='<div style="display:flex;gap:6px">';
+  h+='<button class="btn bg2 bsm" onclick="openEdit(\''+cls+'\',\''+s.id+'\')">✏️ 編輯</button>';
+  h+='<button class="btn bd2" onclick="confirmDel(\''+cls+'\',\''+s.id+'\',\''+s.name.replace(/'/g,'')+'\')">刪除</button>';
+  h+='</div>';
+  h+='<span class="saved" id="sv-'+s.id+'">✓ 已儲存</span>';
+  h+='</div>';
+  h+='</div></div>';
+  return h;
+}
+
+// ─ ROW TOGGLE ─
+function toggleRow(id){
+  var det=document.getElementById('det-'+id), arr=document.getElementById('arr-'+id);
+  var open=det.style.display!=='none';
+  det.style.display=open?'none':'block';
+  arr.style.transform=open?'':'rotate(90deg)';
+  arr.style.color=open?'':'var(--ac)';
+}
+
+// ─ SAVE HANDLERS ─
+function saveD(cls,id,date,field,val){
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  getD(s,date)[field]=val; saveDB(); flash(id); refreshAttn(cls); refreshRowChips(cls,id,date);
+  if(field==='hw'){ var b=document.getElementById('hwb-'+id); if(b){b.className='chip '+hwClass(val);b.textContent=val;} }
+  if(field==='status'){ var b=document.getElementById('stb-'+id); if(b){b.className='chip '+stClass(val);b.textContent=val;} }
+}
+function setAtt(cls,id,date,val,el){
+  el.parentElement.querySelectorAll('.ao').forEach(function(x){x.classList.remove('sg','sw','sb2');});
+  el.classList.add(val==='出席'?'sg':val==='缺席'?'sb2':'sw');
+  var ab=document.getElementById('absbox-'+id); if(ab) ab.style.display=(val==='缺席'||val==='請假')?'flex':'none';
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  var d=getD(s,date); d.attend=val; if(val!=='缺席'&&val!=='請假') d.absType='';
+  saveDB(); flash(id); refreshAttn(cls); refreshRowChips(cls,id,date);
+}
+function setAbsType(cls,id,date,val,el){
+  el.parentElement.querySelectorAll('.ao').forEach(function(x){x.classList.remove('sp');});
+  el.classList.add('sp');
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  getD(s,date).absType=val; saveDB(); flash(id); refreshAttn(cls); refreshRowChips(cls,id,date);
+}
+function toggleForget(cls,id,date,field,el){
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  var d=getD(s,date); d[field]=!d[field];
+  if(d[field]){el.classList.add('on');el.innerHTML=el.innerHTML.replace(' ✓','')+' ✓';}
+  else{el.classList.remove('on');el.innerHTML=el.innerHTML.replace(' ✓','');}
+  saveDB(); flash(id); refreshAttn(cls); refreshRowChips(cls,id,date);
+}
+function saveW(cls,id,wk,field,val){
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  getW(s,wk)[field]=val; saveDB(); flash(id);
+  if(field==='progress') refreshRowChips(cls,id,curDate);
+}
+function upSc(input,bid){
+  var b=document.getElementById(bid); if(!b) return;
+  var v=input.value.trim(); b.className='sch '+scClass(v); b.textContent=v||'—';
+}
+function upProg(slider,barId,pctId){
+  var v=slider.value;
+  var b=document.getElementById(barId), p=document.getElementById(pctId);
+  if(b) b.style.width=v+'%'; if(p) p.textContent=v+'%';
+}
+function flash(id){
+  var el=document.getElementById('sv-'+id); if(!el) return;
+  el.classList.add('show'); clearTimeout(el._t);
+  el._t=setTimeout(function(){el.classList.remove('show');},1800);
+}
+function refreshAttn(cls){
+  var el=document.getElementById('attn-'+cls); if(!el) return;
+  var attn=[];
+  db[cls].forEach(function(s){
+    var d=getD(s,curDate), iss=[];
+    if(d.hw==='未交') iss.push('功課未交');
+    if(d.attend==='缺席') iss.push(d.absType?'缺席('+d.absType+')':'缺席');
+    if(d.attend==='請假') iss.push(d.absType?'請假('+d.absType+')':'請假');
+    if(!isNaN(parseInt(d.score))&&parseInt(d.score)<60&&parseInt(d.score)>0) iss.push(d.score+'分');
+    if(d.noBook) iss.push('未帶課本');
+    if(d.noContact) iss.push('未帶聯絡簿');
+    if(iss.length) attn.push({name:s.name,iss:iss,bad:iss.join(',').indexOf('缺席')>=0});
+  });
+  var h='';
+  if(attn.length) attn.forEach(function(a){h+='<div class="'+(a.bad?'ac-r':'ac-o')+'">'+a.name+' — '+a.iss.join('、')+'</div>';});
+  else h='<span style="color:var(--mu);font-size:13px">✅ 今日無需特別關注的學生</span>';
+  el.innerHTML=h;
+}
+function refreshRowChips(cls,id,date){
+  var row=document.querySelector('#card-'+id+' .srow'); if(!row) return;
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  var d=getD(s,date), w=getW(s,getWK(date));
+  var hasAlert=(d.hw==='未交'||d.attend==='缺席'||(parseInt(d.score)<60&&parseInt(d.score)>0)||d.noBook||d.noContact);
+  row.className='srow'+(hasAlert?' alert':'');
+  var ce=row.querySelector('.srow-chips'); if(ce) ce.innerHTML=buildChips(d,w);
+}
+
+// ─ DATE NAV ─
+function changeDate(d){
+  if(d<START) d=START; if(d>ENDDATE) d=ENDDATE;
+  curDate=d; renderPage(curCls);
+}
+function shiftWeek(delta){
+  var d=new Date(curDate+'T00:00:00'); d.setDate(d.getDate()+delta*7); changeDate(toYMD(d));
+}
+function jumpMonth(cls,mm){
+  var cds=getAllClassDays(cls), found=cds.filter(function(d){return d.slice(5,7)===mm;})[0];
+  changeDate(found||('2026-'+mm+'-01'));
+}
+function toggleCDs(cls){
+  var el=document.getElementById('cdlist-'+cls), btn=document.getElementById('cdtog-'+cls);
+  if(!el||!btn) return;
+  var open=el.style.display!=='none';
+  el.style.display=open?'none':'block';
+  btn.textContent=open?'顯示 ▾':'收合 ▴';
+}
+
+// ─ MODAL ─
+function openAdd(cls){
+  curCls=cls; editId=null;
+  document.getElementById('mTitle').textContent='新增學生 — '+cls.toUpperCase();
+  document.getElementById('f-name').value='';
+  document.getElementById('f-note').value='';
+  document.getElementById('f-level').value='中';
+  document.getElementById('ov').classList.add('open');
+}
+function openEdit(cls,id){
+  curCls=cls; editId=id;
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  document.getElementById('mTitle').textContent='編輯 — '+s.name;
+  document.getElementById('f-name').value=s.name;
+  document.getElementById('f-note').value=s.note||'';
+  document.getElementById('f-level').value=s.level||'中';
+  document.getElementById('ov').classList.add('open');
+}
+function closeModal(e){
+  if(!e||e.target===document.getElementById('ov'))
+    document.getElementById('ov').classList.remove('open');
+}
+function saveStudent(){
+  var name=document.getElementById('f-name').value.trim();
+  if(!name){alert('請輸入學生姓名');return;}
+  if(editId){
+    var s=db[curCls].find(function(x){return x.id===editId;});
+    if(s){s.name=name;s.level=document.getElementById('f-level').value;s.note=document.getElementById('f-note').value.trim();}
+  } else {
+    db[curCls].push({id:mkId(),name:name,level:document.getElementById('f-level').value,note:document.getElementById('f-note').value.trim(),daily:{},weekly:{},comms:[]});
+  }
+  saveDB(); document.getElementById('ov').classList.remove('open');
+  renderPage(curCls); showToast('✓ 已儲存');
+}
+function confirmDel(cls,id,name){
+  var card=document.getElementById('card-'+id); if(!card) return;
+  var ex=card.querySelector('.del-bar'); if(ex){ex.remove();return;}
+  var bar=document.createElement('div');
+  bar.className='del-bar';
+  bar.style.cssText='padding:10px 14px;background:#fde8e8;border-top:1px solid #f0c0c0;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;';
+  bar.innerHTML='<span style="font-weight:700;color:var(--dg)">確定刪除「'+name+'」的所有資料？</span><div style="display:flex;gap:8px"><button class="btn bg2 bsm" onclick="this.closest(\'.del-bar\').remove()">取消</button><button class="btn bd2 bsm" style="background:var(--dg);color:#fff;border-color:var(--dg)" onclick="delStudent(\''+cls+'\',\''+id+'\')">確定刪除</button></div>';
+  card.appendChild(bar);
+}
+function delStudent(cls,id){
+  db[cls]=db[cls].filter(function(x){return x.id!==id;});
+  saveDB(); renderPage(cls); showToast('✓ 已刪除');
+}
+
+// ─ CLASS SUMMARY ─
+function renderSummary(){
+  var tabs=document.getElementById('sumTabs');
+  tabs.innerHTML=CLSKEYS.map(function(c){
+    return '<div class="mpill'+(c===sumCls?' on':'')+'" onclick="setSumCls(\''+c+'\')">'+CLS[c].name+'</div>';
+  }).join('');
+  var dv=document.getElementById('sumDate').value||curDate;
+  var cls=sumCls, sts=db[cls], info=CLS[cls];
+  var scores=sts.map(function(s){return parseInt(getD(s,dv).score);}).filter(function(n){return !isNaN(n)&&n>0;});
+  var avg=scores.length?Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length):null;
+  var noHw=sts.filter(function(s){return getD(s,dv).hw==='未交';}).length;
+  var absent=sts.filter(function(s){return getD(s,dv).attend==='缺席';}).length;
+  var wk=getWK(dv);
+  var h='';
+  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">';
+  h+='<div class="ms-card"><div class="ms-val">'+sts.length+'</div><div class="ms-lbl">學生總數</div></div>';
+  h+='<div class="ms-card"><div class="ms-val" style="color:'+info.color+'">'+(avg!==null?avg:'—')+'</div><div class="ms-lbl">今日均分</div></div>';
+  h+='<div class="ms-card"><div class="ms-val" style="color:var(--dg)">'+noHw+'</div><div class="ms-lbl">未交功課</div></div>';
+  h+='<div class="ms-card"><div class="ms-val" style="color:var(--wn)">'+absent+'</div><div class="ms-lbl">缺席人數</div></div>';
+  h+='</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  // Daily table
+  h+='<div class="sum-card"><div class="sum-card-hd">📋 當日狀況 <span style="font-size:11px;color:var(--mu);font-weight:400">'+dispDate(dv)+' '+getDOWzh(dv)+'</span></div>';
+  if(sts.length){
+    h+='<table class="sum-table"><thead><tr><th>姓名</th><th>功課</th><th>出席</th><th>分數</th><th>狀況</th><th>未帶</th></tr></thead><tbody>';
+    sts.forEach(function(s){
+      var d=getD(s,dv);
+      var fg=[]; if(d.noBook) fg.push('課本'); if(d.noContact) fg.push('聯絡簿');
+      h+='<tr><td style="font-weight:700">'+s.name+'</td>';
+      var hwsStr=d.hwScope?' <span style="font-size:10px;color:var(--mu)">'+d.hwScope+'</span>':'';
+      h+='<td>'+mkChip(d.hw,hwClass(d.hw))+hwsStr+'</td>';
+      h+='<td>'+mkChip(attDisp(d),attClass(d))+'</td>';
+      var scopeStr=d.examScope?(' <span style="font-size:10px;color:var(--mu)">'+d.examScope+'</span>'):'';
+      h+='<td>'+mkSChip(d.score||'—',scClass(d.score))+scopeStr+'</td>';
+      h+='<td>'+mkChip(d.status,stClass(d.status))+'</td>';
+      h+='<td style="font-size:12px;color:var(--wn)">'+(fg.length?fg.join('、'):'—')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  } else { h+='<div class="empty"><div class="empty-i">📚</div>尚無學生資料</div>'; }
+  h+='</div>';
+  // Weekly table
+  h+='<div class="sum-card"><div class="sum-card-hd">📊 當週進度 <span style="font-size:11px;color:var(--mu);font-weight:400">'+wk+'</span></div>';
+  if(sts.length){
+    h+='<table class="sum-table"><thead><tr><th>姓名</th><th>進度</th><th>本週紀錄</th></tr></thead><tbody>';
+    sts.forEach(function(s){
+      var w=getW(s,wk);
+      h+='<tr><td style="font-weight:700">'+s.name+'</td>';
+      h+='<td><div style="display:flex;align-items:center;gap:6px"><div style="width:80px;height:5px;background:var(--s3);border-radius:3px;overflow:hidden"><div style="width:'+w.progress+'%;height:100%;background:var(--ac);border-radius:3px"></div></div><span style="font-family:\'DM Mono\',monospace;font-size:12px;font-weight:700">'+w.progress+'%</span></div></td>';
+      h+='<td style="font-size:12px;color:var(--di);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(w.note||'—')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  } else { h+='<div class="empty"><div class="empty-i">📊</div>尚無學生資料</div>'; }
+  h+='</div></div>';
+  document.getElementById('sumContent').innerHTML=h;
+}
+function setSumCls(c){ sumCls=c; renderSummary(); }
+
+// ─ PROFILE ─
+function renderProfile(){
+  var tabs=document.getElementById('profClsTabs');
+  tabs.innerHTML='<div class="mpill'+(profClsF==='all'?' on':'')+'" onclick="setProfCls(\'all\')">全部</div>';
+  CLSKEYS.forEach(function(c){
+    tabs.innerHTML+='<div class="mpill'+(profClsF===c?' on':'')+'" onclick="setProfCls(\''+c+'\')">'+CLS[c].name+'</div>';
+  });
+  filterProfile();
+}
+function setProfCls(c){ profClsF=c; renderProfile(); }
+function filterProfile(){
+  var q=(document.getElementById('profSearch').value||'').toLowerCase();
+  var h='', found=0;
+  var show=profClsF==='all'?CLSKEYS:[profClsF];
+  show.forEach(function(cls){
+    db[cls].filter(function(s){return s.name.toLowerCase().indexOf(q)>=0;}).forEach(function(s){found++;h+=makeProfCard(cls,s);});
+  });
+  document.getElementById('profContent').innerHTML=found?h:'<div class="empty"><div class="empty-i">🔍</div>沒有找到符合的學生</div>';
+}
+function makeProfCard(cls,s){
+  var info=CLS[cls], wk=getWK(curDate), w=getW(s,wk);
+  var moDays=getMonthDays(curDate);
+  var moData=moDays.filter(function(d){return s.daily&&s.daily[d];}).map(function(d){return {date:d,dx:s.daily[d]};});
+  var wkDays=getWeekDays(curDate);
+  var wkData=wkDays.filter(function(d){return s.daily&&s.daily[d];}).map(function(d){return {date:d,dx:s.daily[d]};});
+  var moScores=moData.map(function(x){return parseInt(x.dx.score);}).filter(function(n){return !isNaN(n)&&n>0;});
+  var moAvg=moScores.length?Math.round(moScores.reduce(function(a,b){return a+b;},0)/moScores.length):null;
+  var moHwOk=moData.filter(function(x){return x.dx.hw==='準時';}).length;
+  var moHwNo=moData.filter(function(x){return x.dx.hw==='未交';}).length;
+  var moAbs=moData.filter(function(x){return x.dx.attend==='缺席';}).length;
+  var moRate=moData.length?Math.round(moHwOk/moData.length*100):0;
+
+  var h='<div class="prof-card">';
+  h+='<div class="prof-top">';
+  h+='<div class="av" style="background:'+getAVC(s.name)+';width:50px;height:50px;font-size:20px">'+getInit(s.name)+'</div>';
+  h+='<div><div class="prof-name">'+s.name+'</div>';
+  h+='<div class="prof-meta">'+info.name+' · <span class="slv '+(s.level==='高'?'lh':s.level==='低'?'ll':'lm')+'" style="font-size:10px">'+s.level+'程度</span>'+(s.note?' · '+s.note:'')+'</div></div>';
+  h+='<div class="prof-stats">';
+  h+='<div class="pst"><div class="pst-v" style="color:'+info.color+'">'+(moAvg!==null?moAvg:'—')+'</div><div class="pst-l">月均分</div></div>';
+  h+='<div class="pst"><div class="pst-v" style="color:var(--gd)">'+moRate+'%</div><div class="pst-l">功課完成率</div></div>';
+  h+='<div class="pst"><div class="pst-v" style="color:var(--dg)">'+moAbs+'</div><div class="pst-l">缺席次數</div></div>';
+  h+='<div class="pst"><div class="pst-v" style="color:var(--ac)">'+w.progress+'%</div><div class="pst-l">本週進度</div></div>';
+  h+='</div></div>';
+  h+='<div class="ptabs">';
+  h+='<div class="ptab on" onclick="swPeriod3(this,\'wk-'+s.id+'\',\'mo-'+s.id+'\',\'cm-'+s.id+'\')">📅 當週詳情</div>';
+  h+='<div class="ptab" onclick="swPeriod3(this,\'mo-'+s.id+'\',\'wk-'+s.id+'\',\'cm-'+s.id+'\')">📆 當月統整</div>';
+  h+='<div class="ptab" onclick="swPeriod3(this,\'cm-'+s.id+'\',\'wk-'+s.id+'\',\'mo-'+s.id+'\')">💬 家長溝通</div>';
+  h+='</div>';
+  h+='<div class="prof-body">';
+
+  // Weekly panel
+  h+='<div id="wk-'+s.id+'">';
+  h+='<div style="margin-bottom:14px"><div class="wb-title">本週上課紀錄 <span style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--mu);font-weight:400">'+wk+'</span></div>';
+  var wkH='';
+  wkData.forEach(function(item){
+    var chips='';
+    if(item.dx.hw&&item.dx.hw!=='—'){
+      var phwsl=item.dx.hwScope?' '+item.dx.hwScope:'';
+      chips+=mkChip(item.dx.hw+phwsl,hwClass(item.dx.hw));
+    }
+    if(item.dx.score){
+      var psl=item.dx.examScope?' '+item.dx.examScope:'';
+      chips+=mkSChip(item.dx.score+'分'+psl,scClass(item.dx.score));
+    }
+    if(item.dx.attend&&item.dx.attend!=='出席') chips+=mkChip(attDisp(item.dx),attClass(item.dx));
+    if(item.dx.status&&item.dx.status!=='正常') chips+=mkChip(item.dx.status,stClass(item.dx.status));
+    if(item.dx.noBook) chips+=mkChip('未帶課本','bw');
+    if(item.dx.noContact) chips+=mkChip('未帶聯絡簿','bw');
+    if(!chips) return;
+    wkH+='<div class="wb-row"><span class="wb-date">'+dispDate(item.date)+' '+getDOWzh(item.date)+'</span><div class="wb-chips">'+chips+'</div></div>';
+  });
+  h+=wkH||'<div style="color:var(--mu);font-size:13px;padding:8px 0">本週尚未有上課紀錄</div>';
+  h+='</div>';
+  h+='<div><div class="wb-title">本週學習進度</div>';
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+  h+='<div class="pb-wrap" style="flex:1;height:8px"><div class="pb-fill" style="width:'+w.progress+'%;height:100%"></div></div>';
+  h+='<span style="font-family:\'DM Mono\',monospace;font-size:14px;font-weight:700">'+w.progress+'%</span></div>';
+  h+=(w.note?'<div style="background:var(--s2);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.6;color:var(--di)">'+w.note+'</div>':'<div style="color:var(--mu);font-size:13px">尚未填寫本週學習紀錄</div>');
+  h+='</div></div>';
+  h+='</div>';
+
+  // Monthly panel
+  h+='<div id="mo-'+s.id+'" style="display:none">';
+  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">';
+  h+='<div class="ms-card"><div class="ms-val" style="color:'+info.color+'">'+(moAvg!==null?moAvg:'—')+'</div><div class="ms-lbl">月均分</div></div>';
+  h+='<div class="ms-card"><div class="ms-val" style="color:var(--gd)">'+moHwOk+'</div><div class="ms-lbl">功課準時</div></div>';
+  h+='<div class="ms-card"><div class="ms-val" style="color:var(--dg)">'+moHwNo+'</div><div class="ms-lbl">功課未交</div></div>';
+  h+='<div class="ms-card"><div class="ms-val" style="color:var(--wn)">'+moAbs+'</div><div class="ms-lbl">缺席次數</div></div>';
+  h+='</div>';
+  if(moScores.length){
+    h+='<div style="margin-bottom:14px"><div class="wb-title">本月考試分數走勢</div><div class="sc-chart">';
+    moScores.slice(-8).forEach(function(sc){
+      var pct=sc, color=sc>=80?'var(--gd)':sc>=60?'var(--wn)':'var(--dg)';
+      h+='<div class="sc-bw"><div style="font-size:10px;font-family:\'DM Mono\',monospace;font-weight:700;color:'+color+'">'+sc+'</div><div class="sc-bar" style="height:'+pct+'%;background:'+color+'"></div></div>';
+    });
+    h+='</div></div>';
+  }
+  h+='<div class="wb-title">本月完整紀錄</div>';
+  var moH='';
+  moData.slice().reverse().forEach(function(item){
+    var chips='';
+    if(item.dx.hw&&item.dx.hw!=='—'){
+      var phwsl=item.dx.hwScope?' '+item.dx.hwScope:'';
+      chips+=mkChip(item.dx.hw+phwsl,hwClass(item.dx.hw));
+    }
+    if(item.dx.score){
+      var psl=item.dx.examScope?' '+item.dx.examScope:'';
+      chips+=mkSChip(item.dx.score+'分'+psl,scClass(item.dx.score));
+    }
+    if(item.dx.attend&&item.dx.attend!=='出席') chips+=mkChip(attDisp(item.dx),attClass(item.dx));
+    if(item.dx.status&&item.dx.status!=='正常') chips+=mkChip(item.dx.status,stClass(item.dx.status));
+    if(item.dx.noBook) chips+=mkChip('未帶課本','bw');
+    if(item.dx.noContact) chips+=mkChip('未帶聯絡簿','bw');
+    if(!chips) return;
+    moH+='<div class="wb-row"><span class="wb-date">'+dispDate(item.date)+' '+getDOWzh(item.date)+'</span><div class="wb-chips">'+chips+'</div></div>';
+  });
+  h+=moH||'<div style="color:var(--mu);font-size:13px;padding:8px 0">本月尚無紀錄</div>';
+  h+='</div>';
+
+  // Comm panel
+  var comms = s.comms||[];
+  h+='<div id="cm-'+s.id+'" style="display:none">';
+  h+='<div class="wb-title">家長溝通紀錄</div>';
+  if(comms.length){
+    h+='<div class="comm-log">';
+    comms.slice().reverse().forEach(function(cm,ri){
+      var realIdx=comms.length-1-ri;
+      h+='<div class="comm-row">';
+      h+='<span class="comm-date">'+cm.date+'</span>';
+      h+='<div class="comm-content">'+cm.text.replace(/\n/g,'<br>')+'</div>';
+      h+='<span class="comm-del" onclick="delComm(\''+cls+'\',\''+s.id+'\','+realIdx+',this)" title="刪除">✕</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  } else {
+    h+='<div style="color:var(--mu);font-size:13px;padding:8px 0 12px">尚未有家長溝通紀錄</div>';
+  }
+  h+='<div class="comm-form">';
+  h+='<div class="comm-form-row">';
+  h+='<input type="date" class="comm-date-in" id="cd-'+s.id+'" value="'+toYMD(new Date())+'">';
+  h+='</div>';
+  h+='<textarea class="comm-text-in" id="ct-'+s.id+'" rows="3" placeholder="討論重點、家長反應、後續追蹤事項..."></textarea>';
+  h+='<div style="display:flex;justify-content:flex-end">';
+  h+='<button class="comm-add-btn" onclick="addComm(\''+cls+'\',\''+s.id+'\',this)">＋ 新增紀錄</button>';
+  h+='</div></div>';
+  h+='</div>';
+
+  h+='</div></div></div>';
+  return h;
+}
+function swPeriod(btn,showId,hideId){
+  btn.closest('.ptabs').querySelectorAll('.ptab').forEach(function(t){t.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById(showId).style.display='block';
+  document.getElementById(hideId).style.display='none';
+}
+function swPeriod3(btn,showId,hideId1,hideId2){
+  btn.closest('.ptabs').querySelectorAll('.ptab').forEach(function(t){t.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById(showId).style.display='block';
+  document.getElementById(hideId1).style.display='none';
+  document.getElementById(hideId2).style.display='none';
+}
+function addComm(cls,id,btn){
+  var dateEl=document.getElementById('cd-'+id);
+  var textEl=document.getElementById('ct-'+id);
+  var date=dateEl?dateEl.value:'';
+  var text=textEl?textEl.value.trim():'';
+  if(!text){ showToast('請輸入溝通內容'); return; }
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  if(!s.comms) s.comms=[];
+  s.comms.push({date:date||toYMD(new Date()), text:text});
+  saveDB();
+  if(textEl) textEl.value='';
+  // Re-render comm panel in place
+  var panel=document.getElementById('cm-'+id); if(!panel) return;
+  var comms=s.comms;
+  var logHtml='<div class="wb-title">家長溝通紀錄</div>';
+  logHtml+='<div class="comm-log">';
+  comms.slice().reverse().forEach(function(cm,ri){
+    var realIdx=comms.length-1-ri;
+    logHtml+='<div class="comm-row">';
+    logHtml+='<span class="comm-date">'+cm.date+'</span>';
+    logHtml+='<div class="comm-content">'+cm.text.replace(/\n/g,'<br>')+'</div>';
+    logHtml+='<span class="comm-del" onclick="delComm(\''+cls+'\',\''+id+'\','+realIdx+',this)" title="刪除">✕</span>';
+    logHtml+='</div>';
+  });
+  logHtml+='</div>';
+  logHtml+='<div class="comm-form">';
+  logHtml+='<div class="comm-form-row"><input type="date" class="comm-date-in" id="cd-'+id+'" value="'+toYMD(new Date())+'"></div>';
+  logHtml+='<textarea class="comm-text-in" id="ct-'+id+'" rows="3" placeholder="討論重點、家長反應、後續追蹤事項..."></textarea>';
+  logHtml+='<div style="display:flex;justify-content:flex-end"><button class="comm-add-btn" onclick="addComm(\''+cls+'\',\''+id+'\',this)">＋ 新增紀錄</button></div>';
+  logHtml+='</div>';
+  panel.innerHTML=logHtml;
+  showToast('✓ 溝通紀錄已儲存');
+}
+function delComm(cls,id,idx,el){
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s||!s.comms) return;
+  var bar=el.closest('.comm-row');
+  if(bar) bar.style.background='#fde8e8';
+  setTimeout(function(){
+    s.comms.splice(idx,1);
+    saveDB();
+    var panel=document.getElementById('cm-'+id); if(!panel) return;
+    var comms=s.comms;
+    var logHtml='<div class="wb-title">家長溝通紀錄</div>';
+    if(comms.length){
+      logHtml+='<div class="comm-log">';
+      comms.slice().reverse().forEach(function(cm,ri){
+        var realIdx=comms.length-1-ri;
+        logHtml+='<div class="comm-row"><span class="comm-date">'+cm.date+'</span><div class="comm-content">'+cm.text.replace(/\n/g,'<br>')+'</div><span class="comm-del" onclick="delComm(\''+cls+'\',\''+id+'\','+realIdx+',this)" title="刪除">✕</span></div>';
+      });
+      logHtml+='</div>';
+    } else { logHtml+='<div style="color:var(--mu);font-size:13px;padding:8px 0 12px">尚未有家長溝通紀錄</div>'; }
+    logHtml+='<div class="comm-form"><div class="comm-form-row"><input type="date" class="comm-date-in" id="cd-'+id+'" value="'+toYMD(new Date())+'"></div><textarea class="comm-text-in" id="ct-'+id+'" rows="3" placeholder="討論重點、家長反應、後續追蹤事項..."></textarea><div style="display:flex;justify-content:flex-end"><button class="comm-add-btn" onclick="addComm(\''+cls+'\',\''+id+'\',this)">＋ 新增紀錄</button></div></div>';
+    panel.innerHTML=logHtml;
+    showToast('✓ 已刪除');
+  },300);
+}
+
+// ─ TOAST ─
+function exportData(){
+  var json = JSON.stringify(db, null, 2);
+  var blob = new Blob([json], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var now = new Date();
+  var fname = 'teacher-os-' + now.getFullYear() + pad(now.getMonth()+1) + pad(now.getDate()) + '.json';
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ 資料已匯出：' + fname);
+}
+function importData(e){
+  var file = e.target.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      var parsed = JSON.parse(ev.target.result);
+      // Validate structure
+      var valid = CLSKEYS.every(function(k){ return Array.isArray(parsed[k]); });
+      if(!valid){ showToast('❌ 檔案格式不正確'); return; }
+      db = parsed;
+      saveDB();
+      renderPage(curCls);
+      showToast('✓ 資料匯入成功！共 ' + CLSKEYS.reduce(function(s,k){return s+db[k].length;},0) + ' 位學生');
+    } catch(err) {
+      showToast('❌ 匯入失敗：檔案無法解析');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+function filterCls(input){
+  var q=input.value.toLowerCase().trim();
+  var wrap=input.closest('.main').querySelector('.slist');
+  if(!wrap) return;
+  var rows=wrap.querySelectorAll('.swrap');
+  var shown=0;
+  rows.forEach(function(row){
+    var name=row.querySelector('.srow-name');
+    var match=!q||(name&&name.textContent.toLowerCase().indexOf(q)>=0);
+    row.style.display=match?'':'none';
+    if(match) shown++;
+  });
+  // update count
+  var cnt=input.parentElement.querySelector('.cls-search-count');
+  if(cnt) cnt.textContent=shown+' 位';
+}
+function upSqColor(input){
+  var v=input.value.trim();
+  input.className='sq-input '+scClass(v);
+  // also update scb badge if detail open
+  var id=input.id.replace('sq-','');
+  var b=document.getElementById('scb-'+id);
+  if(b){ b.className='sch '+scClass(v); b.textContent=v||'—'; }
+}
+function inlineAtt(cls,id,date,val,el){
+  var s=db[cls].find(function(x){return x.id===id;}); if(!s) return;
+  var d=getD(s,date);
+  // Toggle off if already selected
+  if(d.attend===val){ val='出席'; }
+  d.attend=val;
+  if(val!=='缺席'&&val!=='請假') d.absType='';
+  saveDB(); flash(id); refreshAttn(cls);
+  // Update all buttons in this row
+  var wrap=el.parentElement;
+  wrap.querySelectorAll('.ail').forEach(function(b){ b.classList.remove('a-out','a-late','a-abs','a-leave'); });
+  var clsMap={'出席':'a-out','遲到':'a-late','缺席':'a-abs','請假':'a-leave'};
+  if(clsMap[val]) el.classList.add(clsMap[val]);
+  // Update chips in row
+  refreshRowChips(cls,id,date);
+  // Show/hide absbox if detail is open
+  var ab=document.getElementById('absbox-'+id);
+  if(ab) ab.style.display=(val==='缺席'||val==='請假')?'flex':'none';
+  // Update att-row buttons in detail panel
+  var atrow=document.getElementById('atrow-'+id);
+  if(atrow){
+    atrow.querySelectorAll('.ao').forEach(function(x){x.classList.remove('sg','sw','sb2','sp');});
+    var atmap={'出席':'sg','遲到':'sw','缺席':'sb2','請假':'sp'};
+    atrow.querySelectorAll('.ao').forEach(function(x){
+      if(x.textContent.trim()===val&&atmap[val]) x.classList.add(atmap[val]);
+    });
+  }
+}
+function showToast(msg){
+  var t=document.getElementById('toast'); t.textContent=msg||'✓';
+  t.classList.add('show'); clearTimeout(t._t);
+  t._t=setTimeout(function(){t.classList.remove('show');},2000);
+}
+
+// ─ INIT ─
+var _now=new Date();
+document.getElementById('dateDisp').textContent=(_now.getMonth()+1)+'/'+_now.getDate()+' '+getDOWzh(toYMD(_now));
+document.getElementById('sumDate').value=curDate;
+renderPage('sc33');
+</script>
+</body>
+</html>
